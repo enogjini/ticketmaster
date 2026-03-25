@@ -2,7 +2,7 @@
 
 ## 📌 Përshkrimi i Projektit
 
-Ticket System është një aplikacion konsoli i shkruar në C# që lejon
+Ticket System është një aplikacion konsol i shkruar në C# që lejon
 menaxhimin e detyrave (tickets) përmes një ndërfaqe të thjeshtë.
 Projekti ndërtohet sipas parimeve Agile dhe mundëson shtimin, shikimin
 dhe mbylljen e ticketave.
