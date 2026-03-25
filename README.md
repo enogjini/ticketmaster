@@ -9,16 +9,16 @@ dhe mbylljen e ticketave.
 
 ## 🗂️ Informacioni Agile i Projektit
 
--   **Sprint:** Sprint 2 --- Validimi & Menaxhimi bazë\
--   **Versioni:** v1.1.0\
--   **Gjuha:** C# / .NET Console Application\
+-   **Sprint:** Sprint 2 --- Validimi & Menaxhimi bazë
+-   **Versioni:** v1.1.0
+-   **Gjuha:** C# / .NET Console Application
 
 
 ## 📖 User Stories
 
--   **US-01:** Shto Ticket ✅\
--   **US-02:** Shiko Ticketat ✅\
--   **US-03:** Mbyll Ticket ✅\
+-   **US-01:** Shto Ticket ✅
+-   **US-02:** Shiko Ticketat ✅
+-   **US-03:** Mbyll Ticket ✅
 -   **US-04:** Validimi i Fushave ✅
 
 ## ✅ Kriteret e Pranimit
@@ -27,7 +27,7 @@ dhe mbylljen e ticketave.
 
 -   Titulli dhe përshkrimi kërkohen
 -   Fushat bosh japin gabim
--   Statusi fillestar: \[PENDING\]
+-   Statusi fillestar: [PENDING]
 
 ### Shiko Ticketat
 
@@ -38,7 +38,7 @@ dhe mbylljen e ticketave.
 
 -   Zgjedhje sipas numrit
 -   Gabim nëse jashtë rangut
--   Statusi bëhet \[DONE\]
+-   Statusi bëhet [DONE]
 
 ### Validimi
 
