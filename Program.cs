@@ -1,127 +1,139 @@
-﻿class Ticket
+﻿using System;
+using TicketMaster.Application;
+using TicketMaster.Domain;
+
+namespace TicketMaster.ConsoleUI
 {
-    public string Title { get; set; }
-    public string Description { get; set; }
-    public bool IsDone { get; set; }
-
-    public Ticket(string title, string description)
+    internal class Program
     {
-        if (string.IsNullOrWhiteSpace(title))
-            throw new ArgumentException("Titulli nuk mund të jetë bosh.");
-        if (string.IsNullOrWhiteSpace(description))
-            throw new ArgumentException("Përshkrimi nuk mund të jetë bosh.");
-
-        Title = title;
-        Description = description;
-        IsDone = false;
-    }
-
-    public override string ToString()
-    {
-        string status = IsDone ? "[DONE]" : "[PENDING]";
-        return $"{status} {Title}: {Description}";
-    }
-}
-
-class TicketManager
-{
-    private List<Ticket> tickets = new List<Ticket>();
-
-    public void AddTicket(string title, string description)
-    {
-        try
+        static void Main(string[] args)
         {
-            tickets.Add(new Ticket(title, description));
-            Console.WriteLine("Ticket u shtua me sukses!\n");
-        }
-        catch (ArgumentException ex)
-        {
-            Console.WriteLine($"Gabim: {ex.Message}\n");
-        }
-    }
+            ITicketRepo repository = new InMemoryTicketRepo();
+            TicketManager ticketService = new TicketManager(repository);
+            bool running = true;
 
-    public void ViewTickets()
-    {
-        if (tickets.Count == 0)
-        {
-            Console.WriteLine("Nuk u gjet asnjë ticket.\n");
-            return;
-        }
-
-        Console.WriteLine("\n--- Të gjithë Ticketat ---");
-        for (int i = 0; i < tickets.Count; i++)
-        {
-            Console.WriteLine($"{i + 1}. {tickets[i]}");
-        }
-        Console.WriteLine();
-    }
-
-    public void MarkAsDone(int index)
-    {
-        if (index < 1 || index > tickets.Count)
-        {
-            Console.WriteLine("Numër i pavlefshëm.\n");
-            return;
-        }
-
-        tickets[index - 1].IsDone = true;
-        Console.WriteLine($"Ticket \"{tickets[index - 1].Title}\" u shënua si i kryer!\n");
-    }
-}
-
-class Program
-{
-    static void Main(string[] args)
-    {
-        TicketManager manager = new TicketManager();
-        bool running = true;
-
-        while (running)
-        {
-            Console.WriteLine("=== Sistemi i Ticketave ===");
-            Console.WriteLine("1. Shto ticket");
-            Console.WriteLine("2. Shiko ticketat");
-            Console.WriteLine("3. Shëno ticket si të kryer");
-            Console.WriteLine("4. Dil");
-            Console.Write("Zgjidh një opsion: ");
-
-            string input = Console.ReadLine();
-
-            switch (input)
+            while (running)
             {
-                case "1":
-                    Console.Write("Shkruaj titullin: ");
-                    string title = Console.ReadLine();
-                    Console.Write("Shkruaj përshkrimin: ");
-                    string description = Console.ReadLine();
+                Console.WriteLine("\n=== Sistemi i Ticketave ===");
+                Console.WriteLine("1. Shto ticket");
+                Console.WriteLine("2. Shiko të gjithë ticketat");
+                Console.WriteLine("3. Shiko sipas prioritetit");
+                Console.WriteLine("4. Fillo ticket");
+                Console.WriteLine("5. Mbyll ticket");
+                Console.WriteLine("0. Dil");
+                Console.Write("Zgjidh një opsion: ");
+                string? choice = Console.ReadLine();
 
-                    if (string.IsNullOrWhiteSpace(title) || string.IsNullOrWhiteSpace(description))
-                        Console.WriteLine("Titulli dhe përshkrimi nuk mund të jenë bosh.\n");
-                    else
-                        manager.AddTicket(title, description);
-                    break;
+                switch (choice)
+                {
+                    case "1":
+                        Console.Write("Titulli: ");
+                        string title = Console.ReadLine() ?? string.Empty;
 
-                case "2":
-                    manager.ViewTickets();
-                    break;
+                        Console.Write("Përshkrimi: ");
+                        string description = Console.ReadLine() ?? string.Empty;
 
-                case "3":
-                    manager.ViewTickets();
-                    Console.Write("Shkruaj numrin e ticketit për ta shënuar si të kryer: ");
-                    if (int.TryParse(Console.ReadLine(), out int ticketNumber))
-                        manager.MarkAsDone(ticketNumber);
-                    else
-                        Console.WriteLine("Ju lutem shkruaj një numër të vlefshëm.\n");
-                    break;
+                        Console.Write("Afati (yyyy-mm-dd): ");
+                        DateTime dueDate;
+                        if (!DateTime.TryParse(Console.ReadLine(), out dueDate))
+                            dueDate = DateTime.Today;
 
-                case "4":
-                    running = false;
-                    Console.WriteLine("Mirupafshim!");
-                    break;
+                        Priority priority = AskPriority();
 
-                default:
-                    Console.WriteLine("Opsion i pavlefshëm. Zgjidh nga 1–4.\n");
-                    break;
+                        try
+                        {
+                            ticketService.CreateTicket(title, description, dueDate, priority);
+                            Console.WriteLine("Ticket u shtua me sukses!\n");
+                        }
+                        catch (ArgumentException ex)
+                        {
+                            Console.WriteLine($"Gabim: {ex.Message}\n");
+                        }
+                        break;
+
+                    case "2":
+                        var allTickets = ticketService.GetAllTickets();
+                        if (allTickets.Count == 0)
+                        {
+                            Console.WriteLine("Nuk u gjet asnjë ticket.\n");
+                            break;
+                        }
+                        Console.WriteLine("\n--- Të gjithë Ticketat (sipas prioritetit) ---");
+                        foreach (Ticket t in allTickets)
+                            Console.WriteLine(t);
+                        break;
+
+                    case "3":
+                        Priority filter = AskPriority();
+                        var filtered = ticketService.GetByPriority(filter);
+                        string filterLabel = filter switch
+                        {
+                            Priority.High => "HIGH",
+                            Priority.Medium => "MEDIUM",
+                            Priority.Low => "LOW",
+                            _ => "UNKNOWN"
+                        };
+                        Console.WriteLine($"\n--- Ticketat me prioritet {filterLabel} ---");
+                        if (filtered.Count == 0)
+                        {
+                            Console.WriteLine("Nuk u gjet asnjë ticket për këtë prioritet.\n");
+                            break;
+                        }
+                        foreach (Ticket t in filtered)
+                            Console.WriteLine(t);
+                        break;
+
+                    case "4":
+                        Console.Write("ID e ticketit: ");
+                        if (int.TryParse(Console.ReadLine(), out int startId))
+                            Console.WriteLine(ticketService.StartTicket(startId)
+                                ? "Ticket u fillua.\n"
+                                : "Ticket nuk u gjet.\n");
+                        else
+                            Console.WriteLine("ID e pavlefshme.\n");
+                        break;
+
+                    case "5":
+                        Console.Write("ID e ticketit: ");
+                        if (int.TryParse(Console.ReadLine(), out int completeId))
+                            Console.WriteLine(ticketService.CompleteTicket(completeId)
+                                ? "Ticket u mbyll me sukses.\n"
+                                : "Ticket nuk u gjet.\n");
+                        else
+                            Console.WriteLine("ID e pavlefshme.\n");
+                        break;
+
+                    case "0":
+                        running = false;
+                        Console.WriteLine("Mirupafshim!");
+                        break;
+
+                    default:
+                        Console.WriteLine("Opsion i pavlefshëm. Zgjidh nga 0–5.\n");
+                        break;
+                }
+            }
+        }
+
+        static Priority AskPriority()
+        {
+            while (true)
+            {
+                Console.WriteLine("Zgjidh prioritetin:");
+                Console.WriteLine("  1. High");
+                Console.WriteLine("  2. Medium");
+                Console.WriteLine("  3. Low");
+                Console.Write("Opsioni: ");
+                string? input = Console.ReadLine();
+                switch (input)
+                {
+                    case "1": return Priority.High;
+                    case "2": return Priority.Medium;
+                    case "3": return Priority.Low;
+                    default:
+                        Console.WriteLine("Opsion i pavlefshëm. Provo përsëri.\n");
+                        break;
+                }
             }
         }
     }
