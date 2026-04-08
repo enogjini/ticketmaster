@@ -52,6 +52,16 @@ namespace TicketMaster.Domain
                 Status = TicketStatus.Done;
         }
 
+        // Shto brenda klasës Ticket, pas Complete()
+        public static Ticket Restore(int id, string title, string description,
+                                      DateTime dueDate, Priority priority, TicketStatus status)
+        {
+            var t = new Ticket(id, title, description, dueDate, priority);
+            if (status == TicketStatus.InProgress) t.Start();
+            else if (status == TicketStatus.Done) t.Complete();
+            return t;
+        }
+
         public override string ToString()
         {
             string priorityLabel = Priority switch
