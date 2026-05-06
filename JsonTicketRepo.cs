@@ -25,7 +25,7 @@ namespace TicketMaster.Application // namespace i shtresës Application
         public void Add(Ticket ticket)
         {
             _tickets.Add(ticket); // shton ticketin në listën në memorie
-            Save();               // e serialiozn të gjithë listën dhe e shkruan në JSON
+            Save();               // e serializojn të gjithë listën dhe e shkruan në JSON
         }
 
         // kthen listën e plotë të ticketave nga cache-i (pa lexuar skedarin përsëri)
